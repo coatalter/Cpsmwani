@@ -1,0 +1,39 @@
+/* Tailwind directives - wajib untuk build Tailwind */
+@import "tailwindcss";
+/* --- Custom globals --- */
+
+/* Root theme vars */
+:root{
+  --brand-500: #4f46e5; /* indigo-600 like */
+  --accent-1: rgba(79,70,229,0.06);
+}
+
+/* Body background handled by Tailwind utility classes in markup,
+   but set a fallback here for non-processed envs */
+html, body, #root {
+  height: 100%;
+}
+
+/* Example component utility using @apply (requires Tailwind build) */
+.btn {
+  @apply inline-flex items-center justify-center px-4 py-2 rounded-md font-medium;
+}
+
+/* Small utilities */
+.card {
+  @apply bg-white rounded-lg shadow-sm p-4;
+}
+
+/* Make table horizontal scroll nicer */
+.table-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Tiny responsive tweaks */
+@media (min-width: 768px) {
+  .md\:card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+  }
+}
