@@ -8,7 +8,8 @@
 
 ## 🚩 Elevator pitch (1 kalimat)
 
-Berikan insight yang membuat keputusan jadi mudah — untuk siswa (apa yang harus dipelajari) dan tim sales (siapa yang harus dihubungi) — melalui notebook ML dan dashboard interaktif.
+
+
 
 ---
 
