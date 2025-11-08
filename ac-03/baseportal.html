@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sales Dashboard - MVP</title>
+  <style>
+    :root{
+      --bg:#f4f7fb; --card:#ffffff; --muted:#70809a; --accent:#1e88e5; --accent-2:#0f6ab4; --success:#2ecc71;
+      --shadow: 0 6px 18px rgba(34,47,62,0.08);
+      --glass: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.85));
+    }
+    *{box-sizing:border-box;font-family:Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial}
+    body{margin:0;background:linear-gradient(180deg,#eef6ff 0%,var(--bg) 50%);color:#10203a}
+
+    /* Simple header */
+    .app{
+      display:grid;grid-template-columns:280px 1fr;gap:24px;min-height:100vh;padding:28px;
+    }
+    aside{background:var(--card);border-radius:14px;padding:18px;box-shadow:var(--shadow);height:fit-content}
+    .brand{display:flex;gap:12px;align-items:center}
+    .logo{width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;color:white;font-weight:700}
+    h1{font-size:18px;margin:0}
+    small{color:var(--muted)}
+
+    /* sidebar controls */
+    .search{margin-top:16px;display:flex;gap:8px}
+    .search input{flex:1;padding:10px 12px;border-radius:10px;border:1px solid #e6eef8;background:transparent}
+    .filter-row{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+    label{font-size:12px;color:var(--muted)}
+    .range{display:flex;gap:8px;align-items:center}
+    .range input{width:100%}
+    .btn{display:inline-block;padding:8px 12px;border-radius:10px;background:var(--accent);color:white;text-decoration:none;border:none;cursor:pointer}
+    .secondary{background:transparent;border:1px solid #e1ecfb;color:var(--accent)}
+
+    /* main content */
+    main{padding:18px;border-radius:14px;background:var(--card);box-shadow:var(--shadow);}
+    .topbar{display:flex;justify-content:space-between;align-items:center}
+    .kpi{display:flex;gap:16px}
+    .tile{background:var(--glass);padding:12px;border-radius:10px;min-width:160px}
+    .tile h3{margin:0;font-size:14px}
+    .tile p{margin:6px 0 0;color:var(--muted)}
+
+    .layout{display:grid;grid-template-columns:1fr 420px;gap:18px;margin-top:18px}
+
+    /* customer list */
+    .list-card{padding:12px;border-radius:12px;background:linear-gradient(180deg,rgba(250,253,255,0.8),var(--card));height:640px;overflow:auto}
+    .customer{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;border:1px solid transparent}
+    .customer:hover{background:#f6fbff;border-color:#e4f0ff;cursor:pointer}
+    .avatar{width:44px;height:44px;border-radius:10px;background:#eaf4ff;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent)}
+    .meta{flex:1}
+    .meta h4{margin:0;font-size:14px}
+    .meta small{display:block;color:var(--muted);margin-top:2px}
+    .score{min-width:110px;text-align:right}
+    .progress{height:8px;background:#eef6ff;border-radius:10px;overflow:hidden;margin-top:6px}
+    .bar{height:100%;border-radius:8px}
+
+    /* detail panel */
+    .detail{padding:14px;border-radius:12px;background:var(--card);height:640px}
+    .detail h3{margin:0}
+    .info{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+    .info div{background:#fbfdff;padding:10px;border-radius:8px}
+
+    .actions{margin-top:14px;display:flex;gap:8px}
+    .call{background:linear-gradient(90deg,var(--success),#27ae60);color:white;padding:10px;border-radius:10px;border:none;cursor:pointer}
+
+    footer{margin-top:18px;color:var(--muted);font-size:13px}
+
+    /* login screen */
+    .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:36px}
+    .login-card{width:520px;background:var(--card);padding:28px;border-radius:12px;box-shadow:var(--shadow)}
+    .row{display:flex;gap:10px}
+
+    @media (max-width:880px){.app{grid-template-columns:1fr;padding:16px}.layout{grid-template-columns:1fr}.detail{height:auto}.list-card{height:420px}}
+
+  </style>
+</head>
+<body>
+
+<!-- LOGIN PAGE (simulasi) -->
+<section id="login" class="login-wrap">
+  <div class="login-card">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div class="brand"><div class="logo">S</div><div><h1>Sales Portal</h1><small>Portal MVP untuk tim sales</small></div></div>
+      </div>
+      <div><small>Simulasi</small></div>
+    </div>
+
+    <p style="margin-top:18px;color:var(--muted)">Pilih peran untuk masuk (login simulasi):</p>
+    <div class="row" style="margin-top:12px">
+      <button class="btn" onclick="doLogin('sales')">Masuk sebagai Sales</button>
+      <button class="secondary btn" onclick="doLogin('admin')">Masuk sebagai Admin</button>
+    </div>
+
+    <hr style="margin:18px 0;border-color:#eef6ff"/>
+    <p style="color:var(--muted);font-size:13px">Catatan: Ini hanya frontend statis. Data contoh disimpan di browser (array JS). Untuk integrasi backend, panggil endpoint API untuk ambil dataset dan scoring.</p>
+  </div>
+</section>
+
+<!-- APP -->
+<div id="app" style="display:none" class="app">
+  <aside>
+    <div class="brand"><div class="logo">S</div><div><h1>Sales Portal</h1><small>Dashboard Tim Sales</small></div></div>
+
+    <div class="search">
+      <input id="q" placeholder="Cari nama, pekerjaan, atau telepon..." oninput="renderList()" />
+      <button class="btn" onclick="resetFilters()">Reset</button>
+    </div>
+
+    <div class="filter-row">
+      <label>Filter probabilitas minimal: <span id="minScoreLabel">0%</span></label>
+      <div class="range"><input id="minScore" type="range" min="0" max="100" value="0" oninput="onRange()"/></div>
+      <label>Filter pekerjaan:</label>
+      <select id="jobFilter" onchange="renderList()">
+        <option value="">Semua pekerjaan</option>
+      </select>
+      <label style="margin-top:6px">Urutkan berdasarkan:</label>
+      <select id="sortBy" onchange="renderList()">
+        <option value="score_desc">Skor (tinggi ke rendah)</option>
+        <option value="score_asc">Skor (rendah ke tinggi)</option>
+        <option value="name_asc">Nama A-Z</option>
+      </select>
+    </div>
+
+    <footer style="margin-top:18px;font-size:13px;color:var(--muted)">Logged in sebagai <strong id="roleLabel">-</strong></footer>
+  </aside>
+
+  <main>
+    <div class="topbar">
+      <div class="kpi">
+        <div class="tile"><h3>Prospek Prioritas</h3><p id="kpiPriority">0</p></div>
+        <div class="tile"><h3>Rata-rata Skor</h3><p id="kpiAvg">0%</p></div>
+        <div class="tile"><h3>Total Prospek</h3><p id="kpiTotal">0</p></div>
+      </div>
+      <div>
+        <button class="btn" onclick="logout()">Logout</button>
+      </div>
+    </div>
+
+    <div class="layout">
+      <div class="list-card" id="customerList"></div>
+
+      <div class="detail" id="detailPanel">
+        <h3>Pilih nasabah untuk melihat detail</h3>
+        <p style="color:var(--muted);margin-top:6px">Informasi kunci ditampilkan di sini untuk membantu tim sales.</p>
+        <div id="detailContent"></div>
+      </div>
+    </div>
+
+    <footer>Versi MVP - Frontend statis • Bisa dihubungkan ke API untuk data real.</footer>
+  </main>
+</div>
+
+<script>
+  // Sample dataset (mirip Bank Marketing UCI tapi disederhanakan)
+  const customers = [
+    {id:1,name:'Andi Susilo',age:45,job:'management',marital:'married',education:'tertiary',loan_status:'no',balance:820,score:88,phone:'081234567890',email:'andi@example.com'},
+    {id:2,name:'Siti Nur',age:34,job:'technician',marital:'single',education:'secondary',loan_status:'no',balance:120,score:64,phone:'081298765432',email:'siti@example.com'},
+    {id:3,name:'Budi Santoso',age:52,job:'retired',marital:'married',education:'primary',loan_status:'yes',balance:40,score:42,phone:'081355512233',email:'budi@example.com'},
+    {id:4,name:'Rina Permata',age:29,job:'entrepreneur',marital:'single',education:'tertiary',loan_status:'no',balance:540,score:74,phone:'081300011122',email:'rina@example.com'},
+    {id:5,name:'Joko Widodo',age:38,job:'admin',marital:'married',education:'secondary',loan_status:'no',balance:210,score:51,phone:'081344455566',email:'joko@example.com'},
+    {id:6,name:'Maya Putri',age:27,job:'management',marital:'single',education:'tertiary',loan_status:'no',balance:950,score:93,phone:'081377788899',email:'maya@example.com'},
+    {id:7,name:'Hendra',age:41,job:'services',marital:'married',education:'secondary',loan_status:'yes',balance:130,score:35,phone:'081399900011',email:'hendra@example.com'},
+    {id:8,name:'Dewi',age:31,job:'technician',marital:'single',education:'tertiary',loan_status:'no',balance:410,score:68,phone:'081355501234',email:'dewi@example.com'}
+  ];
+
+  // App state
+  let role = null;
+
+  function doLogin(r){
+    role = r; document.getElementById('login').style.display='none'; document.getElementById('app').style.display='grid';
+    document.getElementById('roleLabel').innerText = (r==='sales')? 'Sales' : 'Admin';
+    populateJobFilter(); renderList(); computeKPIs();
+  }
+
+  function logout(){ location.reload(); }
+
+  function onRange(){
+    const v = document.getElementById('minScore').value; document.getElementById('minScoreLabel').innerText = v + '%'; renderList();
+  }
+
+  function resetFilters(){ document.getElementById('q').value=''; document.getElementById('minScore').value=0; document.getElementById('jobFilter').value=''; document.getElementById('sortBy').value='score_desc'; onRange(); }
+
+  function populateJobFilter(){
+    const jobs = Array.from(new Set(customers.map(c=>c.job))).sort(); const sel = document.getElementById('jobFilter'); sel.innerHTML = '<option value="">Semua pekerjaan</option>' + jobs.map(j => `<option value="${j}">${j}</option>`).join('');
+  }
+
+  function renderList(){
+    const q = document.getElementById('q').value.toLowerCase();
+    const minScore = parseInt(document.getElementById('minScore').value || 0,10);
+    const job = document.getElementById('jobFilter').value;
+    const sortBy = document.getElementById('sortBy').value;
+
+    let filtered = customers.filter(c=>{
+      if(job && c.job!==job) return false;
+      if(c.score < minScore) return false;
+      if(q){ const hay = (c.name+" "+c.job+" "+c.phone+" "+c.email).toLowerCase(); if(!hay.includes(q)) return false; }
+      return true;
+    });
+
+    if(sortBy==='score_desc') filtered.sort((a,b)=>b.score-a.score);
+    else if(sortBy==='score_asc') filtered.sort((a,b)=>a.score-b.score);
+    else if(sortBy==='name_asc') filtered.sort((a,b)=>a.name.localeCompare(b.name));
+
+    const container = document.getElementById('customerList'); container.innerHTML = '';
+    filtered.forEach(c=>{
+      const div = document.createElement('div'); div.className='customer'; div.onclick = ()=>showDetail(c.id);
+      div.innerHTML = `
+        <div class="avatar">${c.name.split(' ').map(n=>n[0]).slice(0,2).join('')}</div>
+        <div class="meta"><h4>${c.name}</h4><small>${c.job} • umur ${c.age} • ${c.marital}</small>
+          <div class="progress"><div class="bar" style="width:${c.score}% ; background: linear-gradient(90deg, var(--accent), var(--accent-2))"></div></div>
+        </div>
+        <div class="score"><strong>${c.score}%</strong><br><small style="color:var(--muted)">Skor</small></div>
+      `;
+      container.appendChild(div);
+    });
+
+    if(filtered.length===0) container.innerHTML = '<p style="color:var(--muted)">Tidak ada nasabah sesuai filter.</p>';
+    computeKPIs(filtered);
+  }
+
+  function computeKPIs(list=null){
+    const arr = list || customers;
+    const priority = arr.filter(c=>c.score>=75).length;
+    const avg = Math.round(arr.reduce((s,c)=>s+c.score,0)/arr.length) || 0;
+    document.getElementById('kpiPriority').innerText = priority;
+    document.getElementById('kpiAvg').innerText = avg + '%';
+    document.getElementById('kpiTotal').innerText = arr.length;
+  }
+
+  function showDetail(id){
+    const c = customers.find(x=>x.id===id);
+    const panel = document.getElementById('detailContent');
+    panel.innerHTML = `
+      <h3 style="margin:0">${c.name} <small style="color:var(--muted);font-weight:400">(${c.job})</small></h3>
+      <p style="margin-top:6px;color:var(--muted)">Skor probabilitas: <strong>${c.score}%</strong></p>
+      <div class="info">
+        <div><strong>Usia</strong><div style="margin-top:6px">${c.age} tahun</div></div>
+        <div><strong>Saldo</strong><div style="margin-top:6px">Rp ${c.balance.toLocaleString()}</div></div>
+        <div><strong>Pekerjaan</strong><div style="margin-top:6px">${c.job}</div></div>
+        <div><strong>Status Pinjaman</strong><div style="margin-top:6px">${c.loan_status}</div></div>
+      </div>
+      <div style="margin-top:12px">
+        <strong>Kontak</strong>
+        <div style="margin-top:6px">Tel: <a href="tel:${c.phone}">${c.phone}</a> • Email: <a href="mailto:${c.email}">${c.email}</a></div>
+      </div>
+      <div class="actions">
+        <button class="call" onclick="startCall('${c.phone}')">Panggil</button>
+        <button class="btn secondary" onclick="openChat('${c.email}')">Catat Interaksi</button>
+      </div>
+    `;
+  }
+
+  function startCall(phone){ alert('Simulasi panggilan ke ' + phone); }
+  function openChat(email){ alert('Buka jendela catatan untuk ' + email); }
+
+  // initial state when file loaded: show login
+  (function(){ document.getElementById('login').style.display='flex'; })();
+
+</script>
+</body>
+</html>
