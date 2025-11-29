@@ -2,12 +2,10 @@ import React, { useState, useMemo, useEffect } from "react";
 import Layout from "./Layout";
 import KPI from "./KPI";
 import CustomerTable from "./CustomerTable";
+import Pagination from "./Pagination";
 import { fetchLeadsFromCsv } from "../services/csvService";
+import { getAllMetadata } from "../services/contactService";  
 
-/**
- * Sales dashboard (role 'sales')
- * Sekarang menggunakan data dari CSV hasil model ML
- */
 export default function SalesDashboard() {
   const [query, setQuery] = useState("");
   const [minScore, setMinScore] = useState(0);
@@ -15,127 +13,147 @@ export default function SalesDashboard() {
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Load data dari CSV saat pertama kali component dirender
+  // pagination state
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const pageSizeOptions = [5, 10, 25, 50, 100];
+
   useEffect(() => {
     const load = async () => {
       try {
+        setLoading(true);
         const rows = await fetchLeadsFromCsv();
-        // mapping baris CSV → shape yang dipakai CustomerTable
         const mapped = rows.map((row, index) => ({
           id: index + 1,
-          name: `Prospek #${index + 1}`,       // CSV tidak punya nama, jadi label generic
+          name: row.name || `Prospek #${index + 1}`,
           age: row.age,
           job: row.job,
-          marital: row.marital,
-          education: row.education,
-          loanStatus: row.loan === "yes" ? "Punya pinjaman" : "Tidak punya pinjaman",
-          score: row.probability,              // 0–1
-          probability: row.probability,
-          actual: row.actual,
-          predicted: row.predicted,
-          raw: row,                            // kalau butuh akses kolom lain di detail
+          score: Number(row.probability),
+          raw: row,
         }));
-
-        setCustomers(mapped);
-        console.log("Loaded customers from CSV:", mapped.slice(0, 5));
+        const allMeta = getAllMetadata();
+        const merged = mapped.map((c) => {
+          const m = allMeta[c.id] || {};
+          return { ...c, lastContacted: m.lastContacted || null, subscribed: typeof m.subscribed === "boolean" ? m.subscribed : null, notes: m.notes || "" };
+        });
+        setCustomers(merged);
       } catch (err) {
-        console.error("Gagal memuat CSV:", err);
+        console.error(err);
       } finally {
         setLoading(false);
       }
     };
-
     load();
   }, []);
 
-  // daftar pekerjaan unik untuk dropdown
-  const jobs = useMemo(() => {
-    const set = new Set(customers.map((c) => c.job));
-    return ["All", ...Array.from(set)];
-  }, [customers]);
+  const jobs = useMemo(() => ["All", ...Array.from(new Set(customers.map((c) => c.job).filter(Boolean)))], [customers]);
 
-  // filter & sort
   const filtered = useMemo(() => {
     return customers
       .filter((c) => c.score >= minScore)
       .filter((c) => (jobFilter === "All" ? true : c.job === jobFilter))
-      .filter((c) =>
-        (c.name + c.job + c.loanStatus)
-          .toLowerCase()
-          .includes(query.toLowerCase())
-      )
-      .sort((a, b) => b.score - a.score); // probability desc
+      .filter((c) => (c.name + (c.job || "")).toLowerCase().includes(query.toLowerCase()))
+      .sort((a, b) => b.score - a.score);
   }, [customers, query, minScore, jobFilter]);
 
-  const total = customers.length;
-  const topLeads = customers.filter((c) => c.score >= 0.7).length;
-  const convRate = total > 0 ? `${Math.round((topLeads / total) * 100)}%` : "0%";
+  useEffect(() => setPage(1), [query, minScore, jobFilter]);
 
-  if (loading) {
-    return (
-      <Layout>
-        <div className="p-6">Loading data prospek dari model ML...</div>
-      </Layout>
-    );
-  }
+  const paginated = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, page, pageSize]);
+
+  const topLeads = customers.filter((c) => c.score >= 0.7).length;
+  const convRate = customers.length > 0 ? `${Math.round((topLeads / customers.length) * 100)}%` : "0%";
+
+  if (loading) return <Layout><div className="p-10 text-center text-muted">Loading data...</div></Layout>;
 
   return (
     <Layout>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold">Daftar Prospek Prioritas</h1>
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-8 gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">Dashboard Prospek</h1>
+          <p className="text-slate-500 text-sm mt-1">Kelola dan hubungi prospek prioritas tinggi.</p>
+        </div>
+        <div className="w-full sm:w-72">
+           {/* Gunakan class input-field */}
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Cari"
-            className="border rounded px-3 py-2"
+            placeholder="🔍 Cari nama atau pekerjaan..."
+            className="input-field"
           />
         </div>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-4 mb-6">
-        <KPI title="Total Prospek" value={total} />
-        <KPI title="Prospek Top (>=70%)" value={topLeads} />
-        <KPI title="Estimasi Conversion" value={convRate} delta="+3%" />
+      <div className="grid md:grid-cols-3 gap-6 mb-8">
+        <KPI title="Total Prospek" value={customers.length} />
+        <KPI title="Prospek Hot (>=70%)" value={topLeads} />
+        <KPI title="Potensi Konversi" value={convRate} />
       </div>
 
-      <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2 bg-white rounded shadow p-4">
-          <div className="text-sm text-gray-600 mb-3">
-            Sorted by probability (desc)
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        {/* Kolom Kiri: Tabel (3 bagian) */}
+        {/* Gunakan class 'card' */}
+        <div className="lg:col-span-3 card h-fit">
+          <div className="flex items-center justify-between mb-4 pb-4 border-b border-slate-100">
+            <h3 className="font-semibold text-slate-700">Daftar Prospek</h3>
+            <span className="text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded">Sorted by Probability</span>
           </div>
-          <CustomerTable customers={filtered} />
+
+          <CustomerTable customers={paginated} onContactSaved={() => {
+             const allMeta = getAllMetadata();
+             setCustomers(prev => prev.map(c => {
+               const m = allMeta[c.id] || {};
+               return { ...c, lastContacted: m.lastContacted || null, subscribed: typeof m.subscribed === "boolean" ? m.subscribed : null, notes: m.notes || "" };
+             }));
+          }} />
+
+          <Pagination
+            total={filtered.length}
+            page={page}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
+            pageSizeOptions={pageSizeOptions}
+          />
         </div>
 
-        <aside className="bg-white rounded shadow p-4 h-fit">
-          <div className="text-sm text-gray-600">Filter cepat</div>
-          <div className="mt-3">
-            <label className="text-xs">
-              Probabilitas min: {Math.round(minScore * 100)}%
-            </label>
-            <input
-              type="range"
-              min={0}
-              max={1}
-              step={0.01}
-              value={minScore}
-              onChange={(e) => setMinScore(parseFloat(e.target.value))}
-              className="w-full"
-            />
-          </div>
-          <div className="mt-3">
-            <label className="text-xs">Pekerjaan</label>
-            <select
-              className="mt-1 w-full border rounded px-2 py-1"
-              value={jobFilter}
-              onChange={(e) => setJobFilter(e.target.value)}
-            >
-              {jobs.map((j) => (
-                <option key={j} value={j}>
-                  {j}
-                </option>
-              ))}
-            </select>
+        {/* Kolom Kanan: Filter (1 bagian) */}
+        {/* Gunakan class 'card' */}
+        <aside className="card h-fit sticky top-6">
+          <h3 className="font-semibold text-slate-700 mb-4">Filter Data</h3>
+          
+          <div className="space-y-5">
+            <div>
+              <div className="flex justify-between mb-2">
+                <label className="text-xs font-semibold text-slate-500 uppercase">Min Probability</label>
+                <span className="text-xs font-bold text-indigo-600">{Math.round(minScore * 100)}%</span>
+              </div>
+              <input
+                type="range" min={0} max={1} step={0.01}
+                value={minScore}
+                onChange={(e) => setMinScore(parseFloat(e.target.value))}
+                className="w-full accent-indigo-600 cursor-pointer"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase mb-2">Pekerjaan</label>
+              <select
+                className="input-field cursor-pointer"
+                value={jobFilter}
+                onChange={(e) => setJobFilter(e.target.value)}
+              >
+                {jobs.map((j) => <option key={j} value={j}>{j}</option>)}
+              </select>
+            </div>
+            
+            <div className="pt-4 border-t border-slate-100">
+                <button onClick={() => {setMinScore(0); setJobFilter("All"); setQuery("")}} className="w-full btn btn-ghost btn-small text-xs">
+                    Reset Filter
+                </button>
+            </div>
           </div>
         </aside>
       </div>

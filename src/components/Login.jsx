@@ -15,31 +15,47 @@ export default function Login() {
       setErr("Email atau password salah");
       return;
     }
-    // redirect based on role
     if (user.role === "superadmin") nav("/superadmin", { replace: true });
     else if (user.role === "sales") nav("/sales", { replace: true });
     else nav("/", { replace: true });
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
-      <div className="w-full max-w-md bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">Masuk</h2>
-        <form onSubmit={submit} className="space-y-3">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
+      {/* Ganti style manual dengan class 'card' */}
+      <div className="w-full max-w-md card">
+        <h2 className="text-xl font-bold mb-6 text-center text-slate-800">Masuk ke JMK Sales</h2>
+        <form onSubmit={submit} className="space-y-4">
           <div>
-            <label className="block text-sm text-gray-600">Email</label>
-            <input value={email} onChange={e => setEmail(e.target.value)} className="mt-1 w-full border rounded px-3 py-2" placeholder="admin@bank.co.id" />
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Email</label>
+            {/* Gunakan class 'input-field' */}
+            <input 
+              value={email} 
+              onChange={e => setEmail(e.target.value)} 
+              className="input-field" 
+              placeholder="admin@bank.co.id" 
+            />
           </div>
           <div>
-            <label className="block text-sm text-gray-600">Password</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} className="mt-1 w-full border rounded px-3 py-2" placeholder="password" />
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">Password</label>
+            <input 
+              type="password" 
+              value={password} 
+              onChange={e => setPassword(e.target.value)} 
+              className="input-field" 
+              placeholder="••••••••" 
+            />
           </div>
-          {err && <div className="text-sm text-red-500">{err}</div>}
-          <button type="submit" className="mt-2 w-full bg-indigo-600 text-white rounded py-2">Masuk</button>
+          {err && <div className="text-sm text-red-500 bg-red-50 p-2 rounded border border-red-100">{err}</div>}
+          
+          {/* Gunakan class 'btn' dan 'btn-primary' */}
+          <button type="submit" className="w-full btn btn-primary py-2.5">
+            Masuk
+          </button>
         </form>
 
-        <div className="mt-4 text-xs text-gray-500">
-          Default superadmin: <b>admin@bank.co.id</b> / <b>admin123</b>
+        <div className="mt-6 text-center text-xs text-slate-400">
+          Default superadmin: <br/> <b className="text-slate-600">admin@bank.co.id</b> / <b className="text-slate-600">admin123</b>
         </div>
       </div>
     </div>
