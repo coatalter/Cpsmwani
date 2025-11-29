@@ -1,47 +1,119 @@
-import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { logout, getCurrentUser } from "../services/authService";
 
-/**
- * Simple layout with sidebar + header, children displayed in main
- * Use this in SuperAdminPanel and SalesDashboard
- */
 export default function Layout({ children }) {
   const user = getCurrentUser();
   const nav = useNavigate();
+  const location = useLocation();
+
+  // 1. Logic Dark Mode
+  const [isDark, setIsDark] = useState(() => {
+    return localStorage.getItem("theme") === "dark";
+  });
+
+  // 2. Efek untuk pasang class "dark" di HTML
+  useEffect(() => {
+    const root = window.document.documentElement;
+    root.classList.remove("light", "dark");
+
+    if (isDark) {
+      root.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+    } else {
+      root.classList.add("light");
+      localStorage.setItem("theme", "light");
+    }
+  }, [isDark]);
 
   const doLogout = () => {
     logout();
     nav("/login", { replace: true });
   };
 
-  return (
-    <div className="min-h-screen bg-gray-100 text-gray-800">
-      <div className="flex">
-        <aside className="w-64 bg-white border-r min-h-screen p-4">
-          <div className="text-indigo-600 font-bold text-lg">JMK · Sales</div>
+  // --- PERBAIKAN LINK CLASS DISINI ---
+  const linkClass = (path) => {
+    const isActive = location.pathname === path;
+    return `flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group ${
+      isActive
+        ? "bg-indigo-100 text-indigo-900 font-extrabold shadow-sm dark:bg-indigo-900/50 dark:text-indigo-100" // <--- Jauh lebih kontras di mode terang
+        : "text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-200 font-medium"
+    }`;
+  };
 
-          <nav className="mt-6">
-            <ul className="space-y-2 text-sm">
-              <li><Link to={user?.role === "superadmin" ? "/superadmin" : "/sales"} className="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-50">🏠 Dashboard</Link></li>
+  return (
+    <div className="min-h-screen font-sans transition-colors duration-300">
+      <div className="flex">
+        
+        {/* --- SIDEBAR --- */}
+        <aside className="layout-aside">
+          {/* Logo Brand */}
+          <div className="flex items-center gap-3 px-2 mb-8">
+            <div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center text-white font-extrabold text-xl shadow-lg shadow-indigo-500/30">
+              J
+            </div>
+            <div>
+              <div className="font-bold text-lg tracking-tight leading-none text-main">JMK Sales</div>
+              <div className="text-[10px] uppercase tracking-widest text-muted font-bold mt-1">Dashboard</div>
+            </div>
+          </div>
+
+          {/* Menu Navigasi */}
+          <nav className="flex-1">
+            <ul className="space-y-1 text-sm">
+              <li>
+                <Link to={user?.role === "superadmin" ? "/superadmin" : "/sales"} className={linkClass(user?.role === "superadmin" ? "/superadmin" : "/sales")}>
+                  <span className="text-xl opacity-80 group-hover:opacity-100 transition-opacity">📊</span> Dashboard
+                </Link>
+              </li>
               {user?.role === "superadmin" && (
-                <li><Link to="/superadmin" className="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-50">👥 Manage Sales</Link></li>
+                <li>
+                  <Link to="/superadmin" className={linkClass("/superadmin")}>
+                    <span className="text-xl opacity-80 group-hover:opacity-100 transition-opacity">👥</span> Manage Sales
+                  </Link>
+                </li>
               )}
             </ul>
           </nav>
 
-          <div className="mt-8 text-xs text-gray-500">User</div>
-          <div className="mt-2 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-indigo-200 flex items-center justify-center">{(user?.name || "U").slice(0,2).toUpperCase()}</div>
-            <div>
-              <div className="text-sm font-medium">{user?.name}</div>
-              <div className="text-xs text-gray-500">{user?.role}</div>
+          {/* Bagian Bawah: Toggle & Profile */}
+          <div className="mt-auto pt-6 border-t border-dashed border-slate-200 dark:border-slate-700 space-y-5">
+            
+            {/* Tombol Toggle Dark Mode */}
+            <button 
+              onClick={() => setIsDark(!isDark)}
+              className="w-full group flex items-center justify-between px-3 py-2.5 bg-slate-50 text-slate-600 rounded-xl hover:bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-700 transition-all cursor-pointer"
+            >
+              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide">
+                <span>{isDark ? "🌙 Mode Gelap" : "☀️ Mode Terang"}</span>
+              </div>
+              <div className={`w-9 h-5 rounded-full p-1 transition-colors duration-300 ${isDark ? "bg-indigo-600" : "bg-slate-300"}`}>
+                <div className={`w-3 h-3 bg-white rounded-full shadow-md transform transition-transform duration-300 ${isDark ? "translate-x-4" : "translate-x-0"}`} />
+              </div>
+            </button>
+
+            {/* Profile User */}
+            <div className="flex items-center gap-3 px-1">
+              <div className="user-avatar shadow-md">
+                {(user?.name || "U").slice(0,2).toUpperCase()}
+              </div>
+              <div className="overflow-hidden flex-1">
+                <div className="text-sm font-bold truncate text-main">{user?.name}</div>
+                <div className="text-xs text-muted capitalize font-medium">{user?.role}</div>
+              </div>
+              <button 
+                onClick={doLogout} 
+                className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors cursor-pointer"
+                title="Logout"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+              </button>
             </div>
-            <button onClick={doLogout} className="ml-auto text-xs text-red-500">Logout</button>
           </div>
         </aside>
 
-        <main className="flex-1 p-6">
+        {/* --- MAIN CONTENT --- */}
+        <main className="layout-main">
           {children}
         </main>
       </div>

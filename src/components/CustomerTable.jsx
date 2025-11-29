@@ -1,42 +1,83 @@
 import React, { useState } from "react";
 import ProgressBar from "./ProgressBar";
+import { setContact, getMetadata } from "../services/contactService";
 
-/**
- * Simple table for list prospek; detail modal basic
- */
-export default function CustomerTable({ customers }) {
+export default function CustomerTable({ customers = [], onContactSaved }) {
   const [selected, setSelected] = useState(null);
+  const [subscribedChoice, setSubscribedChoice] = useState(null);
+  const [notes, setNotes] = useState("");
+
+  const openContactModal = (c) => {
+    setSelected(c);
+    const meta = getMetadata(c.id);
+    setSubscribedChoice(meta.subscribed);
+    setNotes(meta.notes || "");
+  };
+
+  const doContact = () => {
+    if (!selected) return;
+    try {
+      setContact(selected.id, { subscribed: subscribedChoice, notes });
+      onContactSaved && onContactSaved();
+      setSelected(null);
+      alert(`Data ${selected.name} berhasil disimpan.`);
+    } catch (e) {
+      console.error(e);
+      alert("Gagal: " + e.message);
+    }
+  };
 
   return (
     <>
-      <div className="overflow-x-auto">
+      <div className="table-scroll">
         <table className="w-full text-left">
           <thead>
-            <tr className="text-xs text-gray-500 border-b">
-              <th className="py-2">Nama</th>
+            <tr>
+              <th>ID</th>
+              <th>Nama</th>
               <th>Umur</th>
               <th>Pekerjaan</th>
-              <th>Skor</th>
-              <th>Prob.</th>
-              <th></th>
+              <th>Score</th>
+              <th>Probabilitas</th>
+              <th>Last Contact</th>
+              <th>Status</th>
+              <th className="text-right">Aksi</th>
             </tr>
           </thead>
           <tbody>
-            {customers.map(c => (
-              <tr key={c.id} className="hover:bg-gray-50">
-                <td className="py-3">{c.name}</td>
-                <td>{c.age}</td>
-                <td>{c.job}</td>
-                <td className="font-medium">{Math.round(c.score*100)}%</td>
-                <td style={{width:200}}>
+            {customers.length === 0 && (
+              <tr><td colSpan={9} className="py-8 text-center text-muted italic">Tidak ada data ditemukan</td></tr>
+            )}
+            {customers.map((c) => (
+              <tr key={c.id}>
+                <td className="text-xs text-muted">#{c.id}</td>
+                {/* Text main otomatis handle warna hitam/putih */}
+                <td className="font-bold text-main">{c.name}</td>
+                <td>{c.age ?? "-"}</td>
+                <td>{c.job ?? "-"}</td>
+                <td className="font-bold text-main">{Math.round((c.score ?? 0) * 100)}%</td>
+                <td style={{ width: 180 }}>
                   <div className="flex items-center gap-3">
-                    <div style={{width:110}}><ProgressBar value={c.score} /></div>
-                    <div className="text-xs text-gray-500">{(c.score*100).toFixed(0)}%</div>
+                    <div className="flex-1"><ProgressBar value={c.score ?? 0} /></div>
                   </div>
                 </td>
+                <td>
+                  {c.lastContacted ? (
+                    <span className="text-xs text-muted font-medium">{new Date(c.lastContacted).toLocaleString("id-ID", { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                  ) : <span className="text-muted opacity-50">-</span>}
+                </td>
+                <td>
+                  {c.subscribed === true && <span className="badge-yes">Yes</span>}
+                  {c.subscribed === false && <span className="badge-no">No</span>}
+                  {(c.subscribed === null || c.subscribed === undefined) && <span className="badge-unk">Unknown</span>}
+                </td>
                 <td className="text-right">
-                  <button onClick={()=>setSelected(c)} className="text-sm px-3 py-1 border rounded">Detail</button>
-                  <button onClick={()=>alert(`Menghubungi ${c.name} (${c.phone})`)} className="ml-2 text-sm px-3 py-1 bg-indigo-600 text-white rounded">Hubungi</button>
+                  <div className="flex justify-end gap-2">
+                    <button onClick={() => openContactModal(c)} className="btn btn-ghost btn-small">Hubungi</button>
+                    <button onClick={() => { navigator.clipboard?.writeText(c.raw?.phone || ""); alert("Nomor disalin"); }} className="btn btn-primary btn-small">
+                       Salin
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -44,35 +85,45 @@ export default function CustomerTable({ customers }) {
         </table>
       </div>
 
+      {/* --- MODAL --- */}
       {selected && (
-        <div className="fixed inset-0 bg-black/30 flex items-end sm:items-center justify-center p-4">
-          <div className="bg-white rounded-lg w-full sm:w-3/4 max-w-3xl shadow p-6">
-            <div className="flex items-start justify-between">
+        <div className="modal-backdrop">
+          <div className="modal-panel">
+            <div className="modal-header">
               <div>
-                <h2 className="text-lg font-semibold">Detail Nasabah</h2>
-                <div className="text-sm text-gray-500">{selected.name} — {selected.job}</div>
+                <h2 className="text-xl font-bold text-main">Catatan Panggilan</h2>
+                <div className="text-sm text-muted mt-1">{selected.name} · {selected.job} · {selected.raw?.phone || "No Phone"}</div>
               </div>
-              <button onClick={()=>setSelected(null)} className="text-gray-500">Tutup ✕</button>
+              <button onClick={() => setSelected(null)} className="text-xl font-bold text-muted hover:text-main transition-colors">✕</button>
             </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-4">
-              <div>
-                <div className="text-xs text-gray-500">Telepon</div>
-                <div className="font-medium">{selected.phone}</div>
-              </div>
-              <div>
-                <div className="text-xs text-gray-500">Status Pinjaman</div>
-                <div className="font-medium">{selected.loanStatus}</div>
-              </div>
-              <div className="col-span-2">
-                <div className="text-xs text-gray-500">Catatan Probabilitas</div>
-                <div className="mt-2">Model memprediksi probabilitas berlangganan {Math.round(selected.score*100)}%. Prioritaskan panggilan singkat dengan penawaran promo deposito berjangka.</div>
-              </div>
-            </div>
+            <div className="p-6"> 
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-xs font-bold text-muted uppercase tracking-wider mb-3">Hasil Konfirmasi Langganan</label>
+                  <div className="flex gap-3">
+                    <button type="button" onClick={() => setSubscribedChoice(true)} className={`contact-choice ${subscribedChoice === true ? "contact-choice-yes" : "border"}`}>Ya, Berlangganan</button>
+                    <button type="button" onClick={() => setSubscribedChoice(false)} className={`contact-choice ${subscribedChoice === false ? "contact-choice-no" : "border"}`}>Menolak</button>
+                    <button type="button" onClick={() => setSubscribedChoice(null)} className={`contact-choice ${subscribedChoice === null ? "contact-choice-unk" : "border"}`}>Belum Jelas</button>
+                  </div>
+                </div>
 
-            <div className="mt-6 flex justify-end gap-3">
-              <button onClick={() => { alert('Mencatat tindakan: Diikuti'); setSelected(null); }} className="px-4 py-2 border rounded">Catat Tindak Lanjut</button>
-              <button onClick={() => { alert(`Panggilan ke ${selected.phone}`); }} className="px-4 py-2 bg-indigo-600 text-white rounded">Panggil</button>
+                <div>
+                  <label className="block text-xs font-bold text-muted uppercase tracking-wider mb-2">Catatan Sales</label>
+                  {/* TEXTAREA MENGGUNAKAN CLASS .input-field */}
+                  <textarea 
+                      className="input-field min-h-[120px]" 
+                      value={notes} 
+                      onChange={(e) => setNotes(e.target.value)} 
+                      placeholder="Tulis hasil pembicaraan, alasan penolakan, atau jadwal follow-up..." 
+                  />
+                </div>
+              </div>
+
+              <div className="mt-8 flex justify-end gap-3 pt-5 border-t border-theme">
+                <button onClick={() => setSelected(null)} className="btn btn-ghost">Batal</button>
+                <button onClick={doContact} className="btn btn-primary">Simpan Progress</button>
+              </div>
             </div>
           </div>
         </div>
