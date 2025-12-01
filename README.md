@@ -18,8 +18,6 @@ Project ini dikembangkan sebagai **Final Capstone Project** untuk program **Acce
 | ![Dashboard Light](https://via.placeholder.com/600x300?text=Screenshot+Light+Mode) | ![Dashboard Dark](https://via.placeholder.com/600x300?text=Screenshot+Dark+Mode) |
 | *Dashboard Interaktif* | *High Contrast Dark Mode* |
 
-*(Note: Ganti link gambar di atas dengan screenshot asli aplikasi setelah di-upload)*
-
 ---
 
 ## ✨ Fitur Utama
@@ -90,7 +88,7 @@ Ikuti langkah-langkah berikut untuk menjalankan project di lokal komputer Anda:
     ```
 
 4.  **Buka di Browser**
-    Akses `http://localhost:5173` (atau port yang tertera di terminal).
+    Akses `http://localhost:5173` 
 
 ---
 
