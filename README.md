@@ -1,4 +1,4 @@
-<img width="1905" height="933" alt="image" src="https://github.com/user-attachments/assets/ec447b62-f9a4-47c6-9d10-6b21a15737bf" /># 🚀 JMK Sales Dashboard - Capstone Project
+# 🚀 JMK Sales Dashboard - Capstone Project
 
 ![Accenture Capstone Badge](https://img.shields.io/badge/Accenture-Capstone%20Project-purple?style=for-the-badge&logo=accenture)
 ![Cohort](https://img.shields.io/badge/Cohort-AC--03-blue?style=for-the-badge)
@@ -7,7 +7,7 @@
 
 > **Sistem Manajemen Hubungan Pelanggan (CRM) & Dashboard Analitik Sales Berbasis Web.**
 
-Project ini dikembangkan sebagai **Final Capstone Project** untuk program **Accenture (Cohort RB dan ML )**. Aplikasi ini dirancang untuk membantu tim sales mengelola prospek (leads), memantau performa penjualan, dan menganalisis data pelanggan potensial menggunakan prediksi berbasis skor probabilitas.
+Project ini dikembangkan sebagai **Final Capstone Project** untuk program **Accenture (Cohort RB dan ML)**. Aplikasi ini dirancang untuk membantu tim sales mengelola prospek (leads), memantau performa penjualan, dan menganalisis data pelanggan potensial menggunakan prediksi berbasis skor probabilitas.
 
 ---
 
@@ -15,9 +15,7 @@ Project ini dikembangkan sebagai **Final Capstone Project** untuk program **Acce
 
 | Light Mode | Dark Mode |
 |:---:|:---:|
-| ![Dashboard Light](<img width="1905" height="933" alt="image" src="https://github.com/user-attachments/assets/facdcf42-7407-4655-8fa3-71628bf65076" />
-) | ![Dashboard Dark](<img width="1917" height="934" alt="image" src="https://github.com/user-attachments/assets/89086cb1-dc69-4ecc-a23b-8bfc2af30609" />
-) |
+| <img src="https://github.com/user-attachments/assets/facdcf42-7407-4655-8fa3-71628bf65076" width="100%" alt="Dashboard Light" /> | <img src="https://github.com/user-attachments/assets/89086cb1-dc69-4ecc-a23b-8bfc2af30609" width="100%" alt="Dashboard Dark" /> |
 | *Dashboard Interaktif* | *High Contrast Dark Mode* |
 
 ---
@@ -72,51 +70,7 @@ Aplikasi ini berfokus pada pengalaman pengguna (UX) yang modern dan penyajian da
 
 Ikuti langkah-langkah berikut untuk menjalankan project di lokal komputer Anda:
 
-1.  **Clone Repository**
-    ```bash
-    git clone [https://github.com/username-anda/nama-repo.git](https://github.com/username-anda/nama-repo.git)
-    cd nama-repo
-    ```
-
-2.  **Install Dependencies**
-    Pastikan Node.js sudah terinstall.
-    ```bash
-    npm install
-    ```
-
-3.  **Jalankan Server Development**
-    ```bash
-    npm run dev
-    ```
-
-4.  **Buka di Browser**
-    Akses `http://localhost:5173` 
-
----
-
-## 🗺️ Roadmap & Pengembangan Lanjut
-
-Project ini saat ini menggunakan *Mock Data Service*. Untuk pengembangan selanjutnya menuju *Production Ready*, rencana kami adalah:
-
-- [ ] **Migrasi Backend:** Mengganti CSV Service dengan REST API.
-- [ ] **Database:** Integrasi dengan **PostgreSQL** untuk penyimpanan data prospek yang persisten.
-- [ ] **Authentication:** Implementasi JWT untuk login yang aman (Superadmin vs Sales).
-- [ ] **Machine Learning API:** Menghubungkan skor probabilitas langsung dengan model ML Python yang berjalan di server.
-
----
-
-## 👥 Tim Pengembang (Accenture AC-03)
-
-Project ini dibangun dengan ❤️ oleh Tim Capstone:
-
-Rahasia dulu karena kami blm selesai proyek nya.
-
----
-
-## 📄 Lisensi
-
-Didistribusikan di bawah Lisensi MIT. Lihat `LICENSE` untuk informasi lebih lanjut.
-
----
-
-*Project ini dibuat semata-mata untuk tujuan pendidikan dan evaluasi Capstone Project Accenture.*
+1. **Clone Repository**
+   ```bash
+   git clone [https://github.com/username-anda/nama-repo.git](https://github.com/username-anda/nama-repo.git)
+   cd nama-repo
