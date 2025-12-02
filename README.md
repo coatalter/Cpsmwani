@@ -7,7 +7,7 @@
 
 > **Sistem Manajemen Hubungan Pelanggan (CRM) & Dashboard Analitik Sales Berbasis Web.**
 
-Project ini dikembangkan sebagai **Final Capstone Project** untuk program **Accenture (Cohort AC-03)**. Aplikasi ini dirancang untuk membantu tim sales mengelola prospek (leads), memantau performa penjualan, dan menganalisis data pelanggan potensial menggunakan prediksi berbasis skor probabilitas.
+Project ini dikembangkan sebagai **Final Capstone Project** untuk program **Accenture (Cohort RB dan ML )**. Aplikasi ini dirancang untuk membantu tim sales mengelola prospek (leads), memantau performa penjualan, dan menganalisis data pelanggan potensial menggunakan prediksi berbasis skor probabilitas.
 
 ---
 
