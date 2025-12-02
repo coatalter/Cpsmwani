@@ -1,55 +1,52 @@
-const KEY = "jmkg_contact_metadata_v1";
+const STORAGE_KEY = "jmk_sales_metadata";
+const LOG_KEY = "jmk_sales_logs"; 
 
-function readAll() {
-  try {
-    const raw = localStorage.getItem(KEY);
-    return raw ? JSON.parse(raw) : {};
-  } catch (e) {
-    console.error("contactService.readAll parse error", e);
-    return {};
-  }
-}
-function writeAll(obj) {
-  try {
-    localStorage.setItem(KEY, JSON.stringify(obj));
-  } catch (e) {
-    console.error("contactService.writeAll error", e);
-  }
-}
+// --- METADATA (STATUS & NOTES) ---
+export const getAllMetadata = () => {
+  const data = localStorage.getItem(STORAGE_KEY);
+  return data ? JSON.parse(data) : {};
+};
+ 
+export const getMetadata = (id) => {
+  const all = getAllMetadata();
+  return all[id] || { subscribed: null, notes: "" };
+};
 
-export function getMetadata(id) {
-  const all = readAll();
-  return all[id] ? all[id] : { lastContacted: null, subscribed: null, notes: "" };
-}
+// Fungsi simpan kontak + Otomatis catat LOG
+export const setContact = (id, data, salesName = "Anda") => {
+  const all = getAllMetadata();
+  // Simpan metadata (Status & Note)
+  all[id] = { 
+    ...all[id], 
+    ...data, 
+    lastContacted: new Date().toISOString() 
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
 
-export function getAllMetadata() {
-  return readAll();
-}
+  // --- FITUR 5: CATAT LOG OTOMATIS ---
+  let actionText = "Memperbarui data";
+  if (data.subscribed === true) actionText = "Berhasil closing (Berlangganan)";
+  else if (data.subscribed === false) actionText = "Menandai status Menolak";
+  else if (data.notes) actionText = "Menambahkan catatan baru";
 
-/**
- * Set contact info for a given id.
- * subscribed: true | false | null
- * notes: string
- * lastContacted: optional ISO string; if not provided it will be set to now
- */
-export function setContact(id, { subscribed = null, notes = "", lastContacted = null } = {}) {
-  const all = readAll();
-  const now = lastContacted || new Date().toISOString();
-  all[id] = { lastContacted: now, subscribed, notes };
-  writeAll(all);
-  return all[id];
-}
+  addLog({
+    user: salesName,
+    action: actionText,
+    target: `Prospek #${id}`,
+    time: new Date().toISOString()
+  });
+};
 
-/** Remove metadata for a single id */
-export function clearContact(id) {
-  const all = readAll();
-  if (all[id]) {
-    delete all[id];
-    writeAll(all);
-  }
-}
+// --- LOGGING SYSTEM ---
+export const getLogs = () => {
+  const logs = localStorage.getItem(LOG_KEY);
+  return logs ? JSON.parse(logs) : [];
+};
 
-/** Reset all contact metadata (dev only) */
-export function resetAll() {
-  writeAll({});
-}
+export const addLog = (logItem) => {
+  const logs = getLogs();
+  // Tambah log baru di paling atas (unshift)
+  // Simpan max 50 log terakhir biar ga berat
+  const newLogs = [logItem, ...logs].slice(0, 50);
+  localStorage.setItem(LOG_KEY, JSON.stringify(newLogs));
+};
