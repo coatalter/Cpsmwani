@@ -1,44 +1,38 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "./components/Login";
-import SuperAdminPanel from "./components/SuperAdminPanel";
 import SalesDashboard from "./components/SalesDashboard";
+import SuperAdminPanel from "./components/SuperAdminPanel";
+// 1. IMPORT COMPONENT BARU (Nanti kita buat)
+import CustomerDetail from "./components/CustomerDetail"; 
 import ProtectedRoute from "./components/ProtectedRoute";
-import { initDefaultAdmin } from "./services/authService";
 
 export default function App() {
-  useEffect(() => {
-    // Pastikan akun superadmin ada saat pertama kali load
-    initDefaultAdmin();
-  }, []);
-
   return (
     <Routes>
-      <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<Login />} />
+      
+      {/* Route Sales */}
+      <Route path="/sales" element={
+        <ProtectedRoute role="sales">
+          <SalesDashboard />
+        </ProtectedRoute>
+      } />
 
-      {/* Superadmin area - hanya role 'superadmin' */}
-      <Route
-        path="/superadmin/*"
-        element={
-          <ProtectedRoute role="superadmin">
-            <SuperAdminPanel />
-          </ProtectedRoute>
-        }
-      />
+      {/* --- 2. TAMBAHKAN ROUTE DETAIL DISINI --- */}
+      <Route path="/sales/customer/:id" element={
+        <ProtectedRoute role="sales">
+          <CustomerDetail />
+        </ProtectedRoute>
+      } />
 
-      {/* Sales dashboard - role 'sales' */}
-      <Route
-        path="/sales/*"
-        element={
-          <ProtectedRoute role="sales">
-            <SalesDashboard />
-          </ProtectedRoute>
-        }
-      />
+      <Route path="/superadmin" element={
+        <ProtectedRoute role="superadmin">
+          <SuperAdminPanel />
+        </ProtectedRoute>
+      } />
 
-      {/* Fallback */}
-      <Route path="*" element={<div className="p-8">Page not found</div>} />
+      <Route path="/" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 }
