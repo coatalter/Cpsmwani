@@ -1,29 +1,47 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom"; 
 import ProgressBar from "./ProgressBar";
-import { setContact, getMetadata } from "../services/contactService";
+import { updateLeadStatus } from "../services/leadsService"; 
 
 export default function CustomerTable({ customers = [], onContactSaved }) {
   const [selected, setSelected] = useState(null);
   const [subscribedChoice, setSubscribedChoice] = useState(null);
   const [notes, setNotes] = useState("");
+  const [isSaving, setIsSaving] = useState(false); // State untuk loading tombol simpan
 
   const openContactModal = (c) => {
     setSelected(c);
-    const meta = getMetadata(c.id);
-    setSubscribedChoice(meta.subscribed);
-    setNotes(meta.notes || "");
+    setSubscribedChoice(c.subscribed); 
+    setNotes(c.notes || "");
   };
 
-  const doContact = () => {
+  const doContact = async () => {
     if (!selected) return;
+    
+    setIsSaving(true);
     try {
-      setContact(selected.id, { subscribed: subscribedChoice, notes });
-      onContactSaved && onContactSaved();
+      // 1. MAPPING STATUS: Frontend (Boolean) -> Database (String)
+      // Sesuaikan string ini dengan ENUM/Varchar di database kamu
+      let statusDB = 'new'; 
+      if (subscribedChoice === true) statusDB = 'closing';
+      if (subscribedChoice === false) statusDB = 'failed';
+
+      // 2. PANGGIL API UPDATE
+      await updateLeadStatus(selected.id, { 
+        status: statusDB, 
+        notes: notes 
+      });
+
+      // 3. REFRESH DATA (Panggil fungsi dari Parent/SalesDashboard)
+      if (onContactSaved) onContactSaved();
+      
       setSelected(null);
-      alert(`Data ${selected.name} berhasil disimpan.`);
+      // alert(`Data ${selected.name} berhasil diupdate.`); // Optional feedback
     } catch (e) {
       console.error(e);
-      alert("Gagal: " + e.message);
+      alert("Gagal update ke Database: " + e.message);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -51,26 +69,41 @@ export default function CustomerTable({ customers = [], onContactSaved }) {
             {customers.map((c) => (
               <tr key={c.id}>
                 <td className="text-xs text-muted">#{c.id}</td>
-                {/* Text main otomatis handle warna hitam/putih */}
-                <td className="font-bold text-main">{c.name}</td>
+                
+                {/* Link ke Detail */}
+                <td>
+                  <Link 
+                    to={`/sales/customer/${c.id}`} 
+                    className="font-bold text-main hover:text-indigo-600 hover:underline transition-colors"
+                    title="Lihat Detail Profil"
+                  >
+                    {c.name}
+                  </Link>
+                </td>
+                
                 <td>{c.age ?? "-"}</td>
                 <td>{c.job ?? "-"}</td>
+                
                 <td className="font-bold text-main">{Math.round((c.score ?? 0) * 100)}%</td>
+                
                 <td style={{ width: 180 }}>
                   <div className="flex items-center gap-3">
                     <div className="flex-1"><ProgressBar value={c.score ?? 0} /></div>
                   </div>
                 </td>
+                
                 <td>
                   {c.lastContacted ? (
                     <span className="text-xs text-muted font-medium">{new Date(c.lastContacted).toLocaleString("id-ID", { dateStyle: 'medium', timeStyle: 'short' })}</span>
                   ) : <span className="text-muted opacity-50">-</span>}
                 </td>
+                
                 <td>
                   {c.subscribed === true && <span className="badge-yes">Yes</span>}
                   {c.subscribed === false && <span className="badge-no">No</span>}
                   {(c.subscribed === null || c.subscribed === undefined) && <span className="badge-unk">Unknown</span>}
                 </td>
+                
                 <td className="text-right">
                   <div className="flex justify-end gap-2">
                     <button onClick={() => openContactModal(c)} className="btn btn-ghost btn-small">Hubungi</button>
@@ -110,7 +143,6 @@ export default function CustomerTable({ customers = [], onContactSaved }) {
 
                 <div>
                   <label className="block text-xs font-bold text-muted uppercase tracking-wider mb-2">Catatan Sales</label>
-                  {/* TEXTAREA MENGGUNAKAN CLASS .input-field */}
                   <textarea 
                       className="input-field min-h-[120px]" 
                       value={notes} 
@@ -121,8 +153,10 @@ export default function CustomerTable({ customers = [], onContactSaved }) {
               </div>
 
               <div className="mt-8 flex justify-end gap-3 pt-5 border-t border-theme">
-                <button onClick={() => setSelected(null)} className="btn btn-ghost">Batal</button>
-                <button onClick={doContact} className="btn btn-primary">Simpan Progress</button>
+                <button onClick={() => setSelected(null)} className="btn btn-ghost" disabled={isSaving}>Batal</button>
+                <button onClick={doContact} className="btn btn-primary" disabled={isSaving}>
+                  {isSaving ? "Menyimpan..." : "Simpan Progress"}
+                </button>
               </div>
             </div>
           </div>
