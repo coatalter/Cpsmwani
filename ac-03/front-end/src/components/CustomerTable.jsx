@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom"; // IMPORT PENTING: Untuk navigasi
 import ProgressBar from "./ProgressBar";
 import { setContact, getMetadata } from "../services/contactService";
 
@@ -51,43 +50,27 @@ export default function CustomerTable({ customers = [], onContactSaved }) {
             )}
             {customers.map((c) => (
               <tr key={c.id}>
-                {/* ID: Warna muted (abu) */}
                 <td className="text-xs text-muted">#{c.id}</td>
-                
-                {/* NAMA: Link ke Halaman Detail (Warna Main + Hover Effect) */}
-                <td>
-                  <Link 
-                    to={`/sales/customer/${c.id}`} 
-                    className="font-bold text-main hover:text-indigo-600 hover:underline transition-colors"
-                    title="Lihat Detail Profil"
-                  >
-                    {c.name}
-                  </Link>
-                </td>
-                
+                {/* Text main otomatis handle warna hitam/putih */}
+                <td className="font-bold text-main">{c.name}</td>
                 <td>{c.age ?? "-"}</td>
                 <td>{c.job ?? "-"}</td>
-                
                 <td className="font-bold text-main">{Math.round((c.score ?? 0) * 100)}%</td>
-                
                 <td style={{ width: 180 }}>
                   <div className="flex items-center gap-3">
                     <div className="flex-1"><ProgressBar value={c.score ?? 0} /></div>
                   </div>
                 </td>
-                
                 <td>
                   {c.lastContacted ? (
                     <span className="text-xs text-muted font-medium">{new Date(c.lastContacted).toLocaleString("id-ID", { dateStyle: 'medium', timeStyle: 'short' })}</span>
                   ) : <span className="text-muted opacity-50">-</span>}
                 </td>
-                
                 <td>
                   {c.subscribed === true && <span className="badge-yes">Yes</span>}
                   {c.subscribed === false && <span className="badge-no">No</span>}
                   {(c.subscribed === null || c.subscribed === undefined) && <span className="badge-unk">Unknown</span>}
                 </td>
-                
                 <td className="text-right">
                   <div className="flex justify-end gap-2">
                     <button onClick={() => openContactModal(c)} className="btn btn-ghost btn-small">Hubungi</button>
@@ -102,7 +85,7 @@ export default function CustomerTable({ customers = [], onContactSaved }) {
         </table>
       </div>
 
-      {/* --- MODAL KONTAK --- */}
+      {/* --- MODAL --- */}
       {selected && (
         <div className="modal-backdrop">
           <div className="modal-panel">
@@ -127,6 +110,7 @@ export default function CustomerTable({ customers = [], onContactSaved }) {
 
                 <div>
                   <label className="block text-xs font-bold text-muted uppercase tracking-wider mb-2">Catatan Sales</label>
+                  {/* TEXTAREA MENGGUNAKAN CLASS .input-field */}
                   <textarea 
                       className="input-field min-h-[120px]" 
                       value={notes} 
@@ -136,7 +120,7 @@ export default function CustomerTable({ customers = [], onContactSaved }) {
                 </div>
               </div>
 
-              <div className="mt-8 flex justify-end gap-3 pt-5 border-t" style={{ borderColor: 'var(--border-color)' }}>
+              <div className="mt-8 flex justify-end gap-3 pt-5 border-t border-theme">
                 <button onClick={() => setSelected(null)} className="btn btn-ghost">Batal</button>
                 <button onClick={doContact} className="btn btn-primary">Simpan Progress</button>
               </div>
