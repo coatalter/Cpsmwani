@@ -1,4 +1,4 @@
-# 🚀 JMK Sales Dashboard - Capstone Project
+<img width="1905" height="933" alt="image" src="https://github.com/user-attachments/assets/ec447b62-f9a4-47c6-9d10-6b21a15737bf" /># 🚀 JMK Sales Dashboard - Capstone Project
 
 ![Accenture Capstone Badge](https://img.shields.io/badge/Accenture-Capstone%20Project-purple?style=for-the-badge&logo=accenture)
 ![Cohort](https://img.shields.io/badge/Cohort-AC--03-blue?style=for-the-badge)
@@ -15,7 +15,9 @@ Project ini dikembangkan sebagai **Final Capstone Project** untuk program **Acce
 
 | Light Mode | Dark Mode |
 |:---:|:---:|
-| ![Dashboard Light](https://via.placeholder.com/600x300?text=Screenshot+Light+Mode) | ![Dashboard Dark](https://via.placeholder.com/600x300?text=Screenshot+Dark+Mode) |
+| ![Dashboard Light](<img width="1905" height="933" alt="image" src="https://github.com/user-attachments/assets/facdcf42-7407-4655-8fa3-71628bf65076" />
+) | ![Dashboard Dark](<img width="1917" height="934" alt="image" src="https://github.com/user-attachments/assets/89086cb1-dc69-4ecc-a23b-8bfc2af30609" />
+) |
 | *Dashboard Interaktif* | *High Contrast Dark Mode* |
 
 ---
